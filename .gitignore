@@ -1,3 +1,9 @@
 # Intellij
 *.iml
 .idea/*
+/.gradle/
+/build/
+/bin/
+.classpath
+.project
+.settings/
