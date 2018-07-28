@@ -10,13 +10,13 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-public class MessageSender {
+public class MessageSenderString {
 
 	private String topicName;
 	
 	private String server;
 	
-	public MessageSender(String topicName, String server) {
+	public MessageSenderString(String topicName, String server) {
 		this.topicName = topicName;
 		this.server = server;
 	}
@@ -24,7 +24,7 @@ public class MessageSender {
 	private KafkaProducer<String, String> producer;
 	
 	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		new MessageSender("teste-msg", "localhost:9092").enviarMensagens();
+		new MessageSenderString("teste-msg", "localhost:9092").enviarMensagens();
 	}
 	
 	private void enviarMensagens() throws InterruptedException, ExecutionException {
@@ -44,7 +44,7 @@ public class MessageSender {
 		
 		Future<RecordMetadata> future = producer.send(record);
 		RecordMetadata meta = future.get();
-//		LOG.info("Mensagem enviada: " + meta.offset());
+		System.out.println(meta);
 	}
 
 	private void conectarKafka() {
