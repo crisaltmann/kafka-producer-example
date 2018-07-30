@@ -1,4 +1,4 @@
-package br.com.crisaltmann;
+package br.com.crisaltmann.stock;
 
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
@@ -10,45 +10,50 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 import org.apache.kafka.common.serialization.StringSerializer;
 
-public class MessageSenderString {
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-	//bin/kafka-topics.sh --create --topic teste-msg --partitions 1 --replication-factor 1 --zookeeper localhost:2181
-	
-	private static final String TOPIC = "teste-msg";
+public class MessageSenderJson {
+
+	private static final String TOPIC = "cotacoes";
 
 	private static final String SERVER = "localhost:9092";
 	
+	private ObjectMapper mapper = new ObjectMapper();
+	
 	private KafkaProducer<String, String> producer;
 	
-	public static void main(String[] args) throws InterruptedException, ExecutionException {
-		new MessageSenderString().sendMsg();
+	public static void main(String[] args) throws InterruptedException, ExecutionException, JsonProcessingException {
+		new MessageSenderJson().sendMessages();
 	}
 	
-	private void sendMsg() throws InterruptedException, ExecutionException {
+	private void sendMessages() throws InterruptedException, ExecutionException, JsonProcessingException {
 		conectKafka();
 		
 		try {
-			long init = System.currentTimeMillis();
-			for (int i = 0; i < Integer.MAX_VALUE ; i++)
+			for (int i = 0; i < 100 ; i++)
 				sendRandomMsg(i);
-			long finish = System.currentTimeMillis();
-			System.out.println("Tempo="+(finish-init));
 		} finally {
-			producer.flush();
 			producer.close();
 		}
 	}
 
-	private void sendRandomMsg(int key) throws InterruptedException, ExecutionException {
-		ProducerRecord<String, String> record = new ProducerRecord<String, String>(
-				TOPIC, String.valueOf(key), String.valueOf(Math.random()));
+	private void sendRandomMsg(int key) throws InterruptedException, ExecutionException, JsonProcessingException {
+		ProducerRecord<String, String> record = createExemploRecord(String.valueOf(key));
 		
-		producer.send(record);
+		Future<RecordMetadata> future = producer.send(record);
+		RecordMetadata meta = future.get();
+		System.out.println(meta);
+	}
+	
+	private ProducerRecord<String, String> createExemploRecord(String key) throws JsonProcessingException {
+		Exemplo exemplo = new Exemplo(key, String.valueOf(Math.random()));
+		return new ProducerRecord<String, String>(
+				TOPIC, String.valueOf(key), mapper.writeValueAsString(exemplo));
 	}
 
 	private void conectKafka() {
 		producer = createProducer(createProperties());
-		
 	}
 	
 	private Properties createProperties() {
