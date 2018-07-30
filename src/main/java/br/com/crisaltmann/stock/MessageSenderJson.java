@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JSR310Module;
 
 public class MessageSenderJson {
 
@@ -23,6 +24,10 @@ public class MessageSenderJson {
 	private ObjectMapper mapper = new ObjectMapper();
 	
 	private KafkaProducer<String, String> producer;
+	
+	{
+		mapper.registerModule(new JSR310Module());
+	}
 	
 	public static void main(String[] args) throws InterruptedException, ExecutionException, JsonProcessingException {
 		new MessageSenderJson().sendMessages();
