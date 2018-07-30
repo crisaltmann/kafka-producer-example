@@ -14,8 +14,6 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import br.com.crisaltmann.json.Exemplo;
-
 public class MessageSenderJson {
 
 	private static final String TOPIC = "cotacoes";
