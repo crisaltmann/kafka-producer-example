@@ -1,5 +1,6 @@
 package br.com.crisaltmann.stock;
 
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -12,6 +13,8 @@ import org.apache.kafka.common.serialization.StringSerializer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import br.com.crisaltmann.json.Exemplo;
 
 public class MessageSenderJson {
 
@@ -29,27 +32,29 @@ public class MessageSenderJson {
 	
 	private void sendMessages() throws InterruptedException, ExecutionException, JsonProcessingException {
 		conectKafka();
-		
+		List<Stock> stocks = new CsvStockParser().parse();
 		try {
-			for (int i = 0; i < 100 ; i++)
-				sendRandomMsg(i);
+			stocks.stream().forEach(stock -> sendMessage(stock));
 		} finally {
 			producer.close();
 		}
 	}
 
-	private void sendRandomMsg(int key) throws InterruptedException, ExecutionException, JsonProcessingException {
-		ProducerRecord<String, String> record = createExemploRecord(String.valueOf(key));
-		
-		Future<RecordMetadata> future = producer.send(record);
-		RecordMetadata meta = future.get();
-		System.out.println(meta);
+	private void sendMessage(Stock stock) {
+		ProducerRecord<String, String> record;
+		try {
+			record = createRecord(stock);
+			Future<RecordMetadata> future = producer.send(record);
+			RecordMetadata meta = future.get();
+			System.out.println(meta);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
-	private ProducerRecord<String, String> createExemploRecord(String key) throws JsonProcessingException {
-		Exemplo exemplo = new Exemplo(key, String.valueOf(Math.random()));
-		return new ProducerRecord<String, String>(
-				TOPIC, String.valueOf(key), mapper.writeValueAsString(exemplo));
+	private ProducerRecord<String, String> createRecord(Stock stock) throws JsonProcessingException {
+		return new ProducerRecord<String, String>(TOPIC, String.valueOf(stock.getCode()), mapper.writeValueAsString(stock));
 	}
 
 	private void conectKafka() {
